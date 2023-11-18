@@ -25,97 +25,79 @@ import {
 import AuthService from "../utils/auth.js";
 
 export function LoginForm({setIsLoggedIn}) {
-  // State hooks for input values
   const [formState, setFormState] = useState({ email: '', password: '' });
   const [login, { error, data }] = useMutation(LOGIN_USER);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // Function to check if button should be disabled
-  const isDisabled = email === '' || password === '';
+  const isDisabled = formState.email === '' || formState.password === '';
 
-  // Function to handle password visibility
   const handlePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  // Function to toggle modal visibility
   const toggleModal = () => setShowModal(!showModal);
 
-  // Function to navigate to home page
   const navigate = useNavigate();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
     setFormState({
       ...formState,
       [name]: value,
     });
   };
 
-  // Function to handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log(formState);
-
     try {
       const { data } = await login({
         variables: { ...formState }
-      })
+      });
       AuthService.login(data.login.token);
+      setIsLoggedIn(true);
+      navigate('/');
     } catch (e) {
       console.error(e);
     }
-    setIsLoggedIn(true);
-    navigate('/')
   };
 
   return (
     <MainWrapper>
-      {data ? (
-      <Form name={'loginForm'} onSubmit={handleLogin}>
-        <Title>Login</Title>
-        <Input type="email" placeholder="Email" value={email} name={'email'} autoComplete={'email'}
-               onChange={handleChange} required />
-        <InputWrapper>
-          <PasswordInput type={isPasswordVisible ? 'text' : 'password'} placeholder="Password" value={password}
-                         name={'password'} autoComplete={'current-password'}
+        <Form name={'loginForm'} onSubmit={handleLogin}>
+          <Title>Login</Title>
+          <Input type="email" placeholder="Email" value={formState.email} name={'email'} autoComplete={'email'}
                  onChange={handleChange} required />
-          <TogglePasswordVisibility onClick={e => {
-            e.preventDefault()
-            handlePasswordVisibility()
-          }}>
-            {isPasswordVisible ? <Eye size={24} /> : <EyeClose size={24} />}
-          </TogglePasswordVisibility>
-        </InputWrapper>
-        <Button type="submit" disabled={isDisabled}>Login</Button>
-
-        {/*Section if the user doesn't have an account*/}
-        <NotLoggedIn>
-          <NotLoggedInSpan>
-            <span>Don't have an account?</span>
-            <ButtonLink onClick={(e) => {
-              e.preventDefault()
-            }}><Link to={'/signup'}>Sign Up</Link></ButtonLink>
-          </NotLoggedInSpan>
-          {/*End of section if the user doesn't have an account*/}
-
-          {/*Section if the user forgot the password*/}
-          <NotLoggedInSpan>
-            <ButtonLink onClick={(e) => {
-              e.preventDefault()
-              toggleModal()
-            }}>Forgot password?</ButtonLink>
-          </NotLoggedInSpan>
-        </NotLoggedIn>
-        {/*End of section if the user forgot the password*/}
-      </Form>
-      ) : error ( <p>PUTO</p> )}
-      {/*Modal for forgot password*/}
+          <InputWrapper>
+            <PasswordInput type={isPasswordVisible ? 'text' : 'password'} placeholder="Password" value={formState.password}
+                           name={'password'} autoComplete={'current-password'}
+                           onChange={handleChange} required />
+            <TogglePasswordVisibility onClick={e => {
+              e.preventDefault();
+              handlePasswordVisibility();
+            }}>
+              {isPasswordVisible ? <Eye size={24} /> : <EyeClose size={24} />}
+            </TogglePasswordVisibility>
+          </InputWrapper>
+          <Button type="submit" disabled={isDisabled}>Login</Button>
+          <NotLoggedIn>
+            <NotLoggedInSpan>
+              <span>Don't have an account?</span>
+              <ButtonLink onClick={(e) => {
+                e.preventDefault();
+              }}><Link to={'/signup'}>Sign Up</Link></ButtonLink>
+            </NotLoggedInSpan>
+            <NotLoggedInSpan>
+              <ButtonLink onClick={(e) => {
+                e.preventDefault();
+                toggleModal();
+              }}>Forgot password?</ButtonLink>
+            </NotLoggedInSpan>
+          </NotLoggedIn>
+        </Form>
       {showModal && (
-        <ModalBackdrop onClick={toggleModal}> {/* Clicking on the backdrop will close the modal */}
-          <ModalContainer onClick={e => e.stopPropagation()}> {/* Stops click from propagating to the backdrop */}
+        <ModalBackdrop onClick={toggleModal}>
+          <ModalContainer onClick={e => e.stopPropagation()}>
             <ModalHeader>RESTORE ACCESS</ModalHeader>
             <ModalBody>
               <p>If you have an OnlyFeet account, you will receive a password reset link to this e-mail.</p>
@@ -128,7 +110,6 @@ export function LoginForm({setIsLoggedIn}) {
           </ModalContainer>
         </ModalBackdrop>
       )}
-      {/*End of modal for forgot password*/}
     </MainWrapper>
   );
 }
